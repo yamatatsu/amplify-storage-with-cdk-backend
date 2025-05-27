@@ -7,41 +7,54 @@ export default function App() {
 	const [mode, setMode] = useState<"list" | "edit">("list");
 
 	const images = useImages(prefix);
-	const removeImage = (path: string) => {
-		remove({
-			path,
-			options: {
-				bucket: "my_images",
-			},
-		});
-	};
 
 	if (mode === "list") {
-		return (
-			<>
-				<h1>一覧</h1>
-				<button type="button" onClick={() => setMode("edit")}>
-					編集へ
-				</button>
-				{images.map((image) => (
-					<div key={image.path}>
-						<StorageImage
-							bucket="my_images"
-							path={image.path}
-							alt={image.path}
-						/>
-						<button type="button" onClick={() => removeImage(image.path)}>
-							Delete
-						</button>
-					</div>
-				))}
-			</>
-		);
+		return <ImageList images={images} onEditClick={() => setMode("edit")} />;
 	}
+	return (
+		<ImageEdit
+			images={images}
+			prefix={prefix}
+			onListClick={() => setMode("list")}
+		/>
+	);
+}
+
+function ImageList({
+	images,
+	onEditClick,
+}: { images: { path: string }[]; onEditClick: () => void }) {
+	const removeImage = (path: string) => {
+		remove({ path, options: { bucket: "my_images" } });
+	};
+
+	return (
+		<>
+			<h1>一覧</h1>
+			<button type="button" onClick={onEditClick}>
+				編集へ
+			</button>
+			{images.map((image) => (
+				<div key={image.path}>
+					<StorageImage bucket="my_images" path={image.path} alt={image.path} />
+					<button type="button" onClick={() => removeImage(image.path)}>
+						Delete
+					</button>
+				</div>
+			))}
+		</>
+	);
+}
+
+function ImageEdit({
+	images,
+	prefix,
+	onListClick,
+}: { images: { path: string }[]; prefix: string; onListClick: () => void }) {
 	return (
 		<>
 			<h1>編集画面</h1>
-			<button type="button" onClick={() => setMode("list")}>
+			<button type="button" onClick={onListClick}>
 				一覧へ
 			</button>
 			<FileUploader
@@ -53,15 +66,6 @@ export default function App() {
 				maxFileSize={1024 * 1024 * 10}
 				defaultFiles={images.map((i) => ({ key: i.path }))}
 				isResumable
-				// onUploadStart={() => {
-				// 	console.log("start");
-				// }}
-				// onUploadError={(error) => {
-				// 	console.error(error);
-				// }}
-				// onUploadSuccess={() => {
-				// 	console.log("success");
-				// }}
 				autoUpload={false}
 			/>
 		</>
